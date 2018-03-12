@@ -1,29 +1,47 @@
 defmodule Db do
-  defstruct keys: %{}
   def new() do
-    %Db{}
+    []
   end
 
   def destroy(dbref) do :ok end
 
-  def write(dbref, key, element) do
-    %{dbref | keys: Map.put(dbref.keys, key, element) }
+  def write([], key, element) do
+    [{key, element}]
+  end
+  def write([{key, _} | tail], key, element) do
+    [{key, element} | tail]
+  end
+  def write([head | tail], key, element) do
+    [head | write(tail, key, element)]
   end
 
-  def delete(dbref, key) do
-    %{dbref | keys: Map.drop(dbref.keys, [key])}
+  def delete([], key) do
+    []
+  end
+  def delete([{key, _} | tail], key) do
+    tail
+  end
+  def delete([head | tail], key) do
+    [head | delete(tail, key)]
   end
 
-  def read(dbref, key) do
-    case dbref.keys do
-      %{^key => val} -> {:ok, val}
-      _ -> {:error, :instance}
-    end
+  def read([], key) do
+    {:error, :instance}
+  end
+  def read([{key, value} | tail], key) do
+    {:ok, value}
+  end
+  def read([head | tail], key) do
+    read(tail, key)
   end
 
-  def match(dbref, element) do
-    for {key, ^element} <- Map.to_list(dbref.keys) do
-      key
-    end
+  def match([], element) do
+    []
+  end
+  def match([{key, element} | tail], element) do
+    [key | match(tail, element)]
+  end
+  def match([head | tail], element) do
+    match(tail, element)
   end
 end
